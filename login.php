@@ -19,7 +19,7 @@ if(isset($_POST['login'])){
 
     }else{
 
-        $message = "Invalid Username or Password";3.
+        $message = "Invalid Username or Password";
 
     }
 
