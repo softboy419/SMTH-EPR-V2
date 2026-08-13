@@ -1,4 +1,5 @@
 <?php
+session_start();
 include("config/database.php");
 
 $message = "";
@@ -10,12 +11,29 @@ if(isset($_POST['login'])){
 
     $sql = "SELECT * FROM users WHERE username='$username' AND password='$password'";
 
-    $result = mysqli_query($conn,$sql);
 
-    if(mysqli_num_rows($result)==1){
+    $result = mysqli_query($conn, $sql);
 
-        header("Location: dashboard.php");
-        exit();
+if (!$result) {
+    die(mysqli_error($conn));
+}
+
+
+
+    if(mysqli_num_rows($result) == 1){
+
+    $user = mysqli_fetch_assoc($result);
+
+
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['username'] = $user['username'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['role'] = $user['role'];
+
+    header("Location: dashboard.php");
+    exit();
+
+}
 
     }else{
 
@@ -23,7 +41,6 @@ if(isset($_POST['login'])){
 
     }
 
-}
 ?>
 
 <!DOCTYPE html>

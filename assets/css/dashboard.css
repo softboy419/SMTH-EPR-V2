@@ -1,0 +1,328 @@
+/* ===========================
+   SAVE ME TEACHING HOSPITAL
+   DASHBOARD CSS
+=========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:250px;
+    height:100vh;
+    background:linear-gradient(180deg,#0d6efd,#084298);
+    color:#fff;
+    box-shadow:3px 0 10px rgba(0,0,0,.15);
+    overflow-y:auto;
+    z-index:1000;
+}
+
+.logo{
+    text-align:center;
+    font-size:30px;
+    font-weight:bold;
+    padding:25px 0;
+}
+
+.logo span{
+    color:white;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:15px 25px;
+    transition:.3s;
+    font-size:16px;
+}
+
+.sidebar a i{
+    margin-right:10px;
+}
+
+.sidebar a:hover,
+.sidebar a.active{
+    background:rgba(255,255,255,.15);
+    padding-left:35px;
+}
+
+.logout{
+    position:absolute;
+    bottom:20px;
+    width:100%;
+}
+
+/* ===========================
+   MAIN CONTENT
+=========================== */
+
+.main-content{
+    margin-left:250px;
+    width:calc(100% - 250px);
+    min-height:100vh;
+    padding:25px;
+}
+
+/* ===========================
+   TOPBAR
+=========================== */
+
+.topbar{
+    background:#fff;
+    border-radius:12px;
+    padding:18px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.hospital-name{
+    font-size:24px;
+    color:#0d6efd;
+    font-weight:bold;
+}
+
+.hospital-name small{
+    display:block;
+    color:#777;
+    font-size:13px;
+}
+
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+.user-info{
+    font-weight:bold;
+}
+
+.datetime{
+    color:#666;
+}
+
+/* ===========================
+   DASHBOARD CARDS
+=========================== */
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card-body{
+    padding:30px;
+}
+
+.card h5{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.card h2{
+    margin-top:15px;
+    font-size:40px;
+    font-weight:bold;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.btn{
+    border-radius:8px;
+    font-weight:bold;
+}
+
+.btn-primary{
+    background:#0d6efd;
+}
+
+.btn-success{
+    background:#198754;
+}
+
+.btn-danger{
+    background:#dc3545;
+}
+
+/* ===========================
+   TABLES
+=========================== */
+
+table{
+    width:100%;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+table th{
+    background:#0d6efd;
+    color:white;
+    padding:15px;
+}
+
+table td{
+    padding:12px;
+    vertical-align:middle;
+}
+
+table tr:nth-child(even){
+    background:#f8f9fa;
+}
+
+table tr:hover{
+    background:#eef5ff;
+}
+
+/* ===========================
+   CHARTS
+=========================== */
+
+canvas{
+    max-width:100%;
+}
+
+/* ===========================
+   RECENT ACTIVITIES
+=========================== */
+
+.list-group-item{
+    border:none;
+    padding:15px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media(max-width:992px){
+
+.sidebar{
+    width:220px;
+}
+
+.main-content{
+    margin-left:220px;
+    width:calc(100% - 220px);
+}
+
+}
+
+@media(max-width:768px){
+
+.sidebar{
+    position:relative;
+    width:100%;
+    height:auto;
+}
+
+.main-content{
+    margin-left:0;
+    width:100%;
+    padding:15px;
+}
+
+.topbar{
+    flex-direction:column;
+    gap:15px;
+    text-align:center;
+}
+
+}
+.card{
+    transition:.3s;
+    cursor:pointer;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 12px 25px rgba(0,0,0,.25);
+}
+
+a{
+    text-decoration:none;
+}
+/* Dashboard Card Links */
+
+.dashboard-link{
+    display:block;
+    height:100%;
+    text-decoration:none !important;
+    color:inherit !important;
+}
+
+.dashboard-link:hover{
+    text-decoration:none !important;
+    color:inherit !important;
+}
+
+/* Remove underline from everything inside the card */
+.dashboard-link h5,
+.dashboard-link h2{
+    text-decoration:none !important;
+    color:inherit !important;
+}
+
+.dashboard-card{
+    cursor:pointer;
+    transition:all 0.3s ease;
+}
+
+.dashboard-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.2) !important;
+}
+/* Dashboard Icons */
+
+.dashboard-icon{
+    display:block;
+    font-size:32px;
+    margin-bottom:10px;
+    color:inherit;
+}
+#pieChart{
+    cursor:pointer;
+}
+/* Recent Activity Highlight */
+
+.highlight-row td {
+    background: #fff3cd !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    border-top: 3px solid #ffc107 !important;
+    border-bottom: 3px solid #ffc107 !important;
+}
+
+.highlight-row td:first-child {
+    border-left: 5px solid #ffc107 !important;
+}
+
+.highlight-row td:last-child {
+    border-right: 5px solid #ffc107 !important;
+}
