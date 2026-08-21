@@ -1,26 +1,96 @@
 <?php
+
+session_start();
+
 include("../config/database.php");
 
 $patients = mysqli_query($conn, "SELECT * FROM patients");
-$doctors = mysqli_query($conn, "SELECT * FROM doctors");
 
-if(isset($_POST['save'])){
+$role = $_SESSION['role'] ?? '';
+$userFullName = $_SESSION['full_name'] ?? '';
+
+$doctor = null;
+
+/*
+|--------------------------------------------------------------------------
+| If logged-in user is a Doctor
+|--------------------------------------------------------------------------
+| Find that Doctor's record using the user's full name.
+*/
+
+if ($role === 'Doctor') {
+
+    $doctorQuery = mysqli_query(
+        $conn,
+        "SELECT * FROM doctors WHERE full_name = '$userFullName' LIMIT 1"
+    );
+
+    if ($doctorQuery && mysqli_num_rows($doctorQuery) === 1) {
+
+        $doctor = mysqli_fetch_assoc($doctorQuery);
+
+    } else {
+
+        die("
+            <h2 style='color:red;text-align:center;margin-top:50px;'>
+                Doctor profile not found.
+            </h2>
+            <p style='text-align:center;'>
+                Your user account is not linked to a Doctor record.
+            </p>
+        ");
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Save Appointment
+|--------------------------------------------------------------------------
+*/
+
+if (isset($_POST['save'])) {
 
     $patient = $_POST['patient_id'];
-    $doctor = $_POST['doctor_id'];
     $date = $_POST['appointment_date'];
     $time = $_POST['appointment_time'];
 
-    $sql = "INSERT INTO appointments(patient_id, doctor_id, appointment_date, appointment_time)
-            VALUES('$patient','$doctor','$date','$time')";
+    /*
+    | Admin chooses the doctor.
+    | Doctor automatically uses their own doctor ID.
+    */
 
-    mysqli_query($conn,$sql);
+    if ($role === 'Doctor') {
 
-    echo "<script>
-    alert('Appointment Added Successfully!');
-    window.location='appointments.php';
-    </script>";
+        $doctorId = $doctor['id'];
+
+    } else {
+
+        $doctorId = $_POST['doctor_id'];
+
+    }
+
+
+    $sql = "INSERT INTO appointments
+            (patient_id, doctor_id, appointment_date, appointment_time)
+            VALUES
+            ('$patient', '$doctorId', '$date', '$time')";
+
+
+    if (mysqli_query($conn, $sql)) {
+
+        echo "<script>
+            alert('Appointment Added Successfully!');
+            window.location='appointments.php';
+        </script>";
+
+    } else {
+
+        echo "Error: " . mysqli_error($conn);
+
+    }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -65,19 +135,44 @@ if(isset($_POST['save'])){
 
 <label>Doctor</label><br>
 
-<select name="doctor_id">
+<?php if ($role === 'Doctor'): ?>
 
-<?php while($row=mysqli_fetch_assoc($doctors)){ ?>
+    <input 
+        type="text" 
+        value="<?php echo htmlspecialchars($doctor['full_name']); ?>" 
+        readonly
+    >
 
-<option value="<?php echo $row['id']; ?>">
+    <input 
+        type="hidden" 
+        name="doctor_id" 
+        value="<?php echo $doctor['id']; ?>"
+    >
 
-<?php echo $row['full_name']; ?>
+<?php else: ?>
 
-</option>
+    <select name="doctor_id" required>
 
-<?php } ?>
+        <?php
 
-</select>
+        $doctors = mysqli_query($conn, "SELECT * FROM doctors");
+
+        while ($row = mysqli_fetch_assoc($doctors)) {
+
+        ?>
+
+            <option value="<?php echo $row['id']; ?>">
+                <?php echo htmlspecialchars($row['full_name']); ?>
+            </option>
+
+        <?php } ?>
+
+    </select>
+
+<?php endif; ?>
+
+<br><br>
+
 
 <br><br>
 

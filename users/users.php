@@ -5,6 +5,8 @@ include("../includes/header.php");
 include("../includes/sidebar.php");
 include("../includes/auth.php");
 
+include("../includes/role_check.php");
+checkRole(['Admin']);
 $sql = "SELECT * FROM users";
 $result = mysqli_query($conn, $sql);
 $highlight_id = isset($_GET['highlight']) ? (int)$_GET['highlight'] : 0;
