@@ -1,3 +1,7 @@
+# Environment configuration
+.env
+config/env.php
+
 # Environment / secrets
 .env
 .env.example
