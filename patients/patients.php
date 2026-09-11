@@ -61,7 +61,7 @@ $highlight_id = isset($_GET['highlight']) ? intval($_GET['highlight']) : 0;
 
             <td>
 
-                <a href="edit_patients.php?id=<?php echo $row['id']; ?>">Edit</a> |
+                <a href="edit_patient.php?id=<?php echo $row['id']; ?>">Edit</a> |
 
                 <a href="delete_patients.php?id=<?php echo $row['id']; ?>"
                 onclick="return confirm('Delete this patient?');">

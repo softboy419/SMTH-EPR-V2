@@ -1,34 +1,88 @@
 <?php
+include("../includes/session.php");
 include("../config/database.php");
+include("../includes/auth.php");
 
-$id = $_GET['id'];
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
-$sql = "SELECT * FROM patients WHERE id='$id'";
-$result = mysqli_query($conn, $sql);
+if ($id <= 0) {
+    die("Invalid patient ID.");
+}
+
+// Fetch patient using a prepared statement
+$sql = "SELECT * FROM patients WHERE id = ?";
+
+$stmt = mysqli_prepare($conn, $sql);
+
+if (!$stmt) {
+    die("Unable to load patient.");
+}
+
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+
+if (!$result || mysqli_num_rows($result) !== 1) {
+    mysqli_stmt_close($stmt);
+    die("Patient not found.");
+}
+
 $row = mysqli_fetch_assoc($result);
 
-if(isset($_POST['update'])){
+mysqli_stmt_close($stmt);
 
-    $name = $_POST['full_name'];
-    $gender = $_POST['gender'];
-    $age = $_POST['age'];
-    $phone = $_POST['phone'];
-    $address = $_POST['address'];
 
-    $update = "UPDATE patients
-               SET full_name='$name',
-                   gender='$gender',
-                   age='$age',
-                   phone='$phone',
-                   address='$address'
-               WHERE id='$id'";
+// Handle patient update
+if (isset($_POST['update'])) {
 
-    mysqli_query($conn, $update);
+    $name = trim($_POST['full_name']);
+    $gender = trim($_POST['gender']);
+    $age = (int) $_POST['age'];
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
 
-    echo "<script>
-    alert('Patient Updated Successfully!');
-    window.location='patients.php';
-    </script>";
+    $update_sql = "UPDATE patients
+                   SET full_name = ?,
+                       gender = ?,
+                       age = ?,
+                       phone = ?,
+                       address = ?
+                   WHERE id = ?";
+
+    $update_stmt = mysqli_prepare($conn, $update_sql);
+
+    if ($update_stmt) {
+
+        mysqli_stmt_bind_param(
+            $update_stmt,
+            "ssissi",
+            $name,
+            $gender,
+            $age,
+            $phone,
+            $address,
+            $id
+        );
+
+        if (mysqli_stmt_execute($update_stmt)) {
+
+            echo "<script>
+                    alert('Patient Updated Successfully!');
+                    window.location='patients.php';
+                  </script>";
+
+        } else {
+
+            echo "Unable to update patient.";
+        }
+
+        mysqli_stmt_close($update_stmt);
+
+    } else {
+
+        echo "Unable to process update request.";
+    }
 }
 ?>
 <!DOCTYPE html>
