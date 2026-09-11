@@ -1,20 +1,52 @@
 <?php
+include("../includes/session.php");
 include("../config/database.php");
+include("../includes/auth.php");
 
-if(isset($_POST['save'])){
+if (isset($_POST['save'])) {
 
-    $name = $_POST['full_name'];
-    $gender = $_POST['gender'];
-    $age = $_POST['age'];
-    $phone = $_POST['phone'];
-    $address = $_POST['address'];
+    $name = trim($_POST['full_name']);
+    $gender = trim($_POST['gender']);
+    $age = (int) $_POST['age'];
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
 
-    $sql = "INSERT INTO patients(full_name, gender, age, phone, address)
-            VALUES('$name','$gender','$age','$phone','$address')";
+    // Prepared statement prevents SQL injection
+    $sql = "INSERT INTO patients (full_name, gender, age, phone, address)
+            VALUES (?, ?, ?, ?, ?)";
 
-    mysqli_query($conn,$sql);
+    $stmt = mysqli_prepare($conn, $sql);
 
-    echo "<script>alert('Patient Added Successfully!');</script>";
+    if ($stmt) {
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "ssiss",
+            $name,
+            $gender,
+            $age,
+            $phone,
+            $address
+        );
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            echo "<script>
+                    alert('Patient Added Successfully!');
+                    window.location='patients.php';
+                  </script>";
+
+        } else {
+
+            echo "Unable to add patient.";
+        }
+
+        mysqli_stmt_close($stmt);
+
+    } else {
+
+        echo "Unable to process request.";
+    }
 }
 ?>
 
