@@ -7,23 +7,51 @@ include("../includes/auth.php");
 
 if(isset($_POST['save'])){
 
-    $full_name = $_POST['full_name'];
-    $username  = $_POST['username'];
-    $password  = md5($_POST['password']); // simple encryption
-    $email     = $_POST['email'];
-    $role      = $_POST['role'];
+    $full_name = trim($_POST['full_name']);
+$username = trim($_POST['username']);
+$password = $_POST['password'];
+$email = trim($_POST['email']);
+$role = $_POST['role'];
 
-    $sql = "INSERT INTO users(full_name,username,password,email,role)
-            VALUES('$full_name','$username','$password','$email','$role')";
+// Securely hash the password
+$password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    if(mysqli_query($conn,$sql)){
+// Use a prepared statement
+$sql = "INSERT INTO users (full_name, username, password, email, role)
+        VALUES (?, ?, ?, ?, ?)";
+
+$stmt = mysqli_prepare($conn, $sql);
+
+if ($stmt) {
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "sssss",
+        $full_name,
+        $username,
+        $password_hash,
+        $email,
+        $role
+    );
+
+    if (mysqli_stmt_execute($stmt)) {
+
         echo "<script>
-                alert('User Added Successfully');
+                alert('User added successfully');
                 window.location='users.php';
               </script>";
-    }else{
-        echo "Error: ".mysqli_error($conn);
+
+    } else {
+
+        echo "Error: " . mysqli_stmt_error($stmt);
     }
+
+    mysqli_stmt_close($stmt);
+
+} else {
+
+    echo "Error preparing statement: " . mysqli_error($conn);
+}
 }
 ?>
 <div class="main-content">
