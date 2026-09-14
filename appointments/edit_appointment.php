@@ -1,39 +1,110 @@
 <?php
 include("../config/database.php");
 
-$id = $_GET['id'];
+/*
+ * Validate appointment ID
+ */
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-$patients = mysqli_query($conn,"SELECT * FROM patients");
-$doctors = mysqli_query($conn,"SELECT * FROM doctors");
+if (!$id) {
+    die("Invalid appointment ID.");
+}
 
-$sql = "SELECT * FROM appointments WHERE id='$id'";
-$result = mysqli_query($conn,$sql);
+/*
+ * Load patients and doctors for the form
+ */
+$patients = mysqli_query($conn, "SELECT * FROM patients");
+$doctors = mysqli_query($conn, "SELECT * FROM doctors");
+
+/*
+ * Get the appointment being edited
+ */
+$stmt = mysqli_prepare(
+    $conn,
+    "SELECT * FROM appointments WHERE id = ?"
+);
+
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
 $row = mysqli_fetch_assoc($result);
 
-if(isset($_POST['update'])){
+mysqli_stmt_close($stmt);
 
-    $patient = $_POST['patient_id'];
-    $doctor = $_POST['doctor_id'];
-    $date = $_POST['appointment_date'];
-    $time = $_POST['appointment_time'];
-    $status = $_POST['status'];
+if (!$row) {
+    die("Appointment not found.");
+}
 
-    $update = "UPDATE appointments SET
-               patient_id='$patient',
-               doctor_id='$doctor',
-               appointment_date='$date',
-               appointment_time='$time',
-               status='$status'
-               WHERE id='$id'";
+/*
+ * Update appointment
+ */
+if (isset($_POST['update'])) {
 
-    if(mysqli_query($conn,$update)){
-        echo "<script>
-        alert('Appointment Updated Successfully!');
-        window.location='appointments.php';
-        </script>";
-    }else{
-        echo mysqli_error($conn);
+    $patient = filter_input(
+        INPUT_POST,
+        'patient_id',
+        FILTER_VALIDATE_INT
+    );
+
+    $doctor = filter_input(
+        INPUT_POST,
+        'doctor_id',
+        FILTER_VALIDATE_INT
+    );
+
+    $date = $_POST['appointment_date'] ?? '';
+    $time = $_POST['appointment_time'] ?? '';
+    $status = $_POST['status'] ?? '';
+
+    /*
+     * Basic validation
+     */
+    if (!$patient || !$doctor || empty($date) || empty($time) || empty($status)) {
+
+        die("Invalid appointment information.");
+
     }
+
+    /*
+     * Update using a prepared statement
+     */
+    $stmt = mysqli_prepare(
+        $conn,
+        "UPDATE appointments
+         SET patient_id = ?,
+             doctor_id = ?,
+             appointment_date = ?,
+             appointment_time = ?,
+             status = ?
+         WHERE id = ?"
+    );
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "iisssi",
+        $patient,
+        $doctor,
+        $date,
+        $time,
+        $status,
+        $id
+    );
+
+    if (mysqli_stmt_execute($stmt)) {
+
+        echo "<script>
+            alert('Appointment Updated Successfully!');
+            window.location='appointments.php';
+        </script>";
+
+    } else {
+
+        echo "Error updating appointment.";
+
+    }
+
+    mysqli_stmt_close($stmt);
 }
 ?>
 
