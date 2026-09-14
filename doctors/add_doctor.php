@@ -1,22 +1,43 @@
 <?php
+
 include("../config/database.php");
 
-if(isset($_POST['save'])){
+if (isset($_POST['save'])) {
 
-    $name = $_POST['full_name'];
-    $specialization = $_POST['specialization'];
-    $phone = $_POST['phone'];
-    $email = $_POST['email'];
+    $name = trim($_POST['full_name']);
+    $specialization = trim($_POST['specialization']);
+    $phone = trim($_POST['phone']);
+    $email = trim($_POST['email']);
 
-    $sql = "INSERT INTO doctors(full_name, specialization, phone, email)
-            VALUES('$name','$specialization','$phone','$email')";
+    $stmt = mysqli_prepare(
+        $conn,
+        "INSERT INTO doctors (full_name, specialization, phone, email)
+         VALUES (?, ?, ?, ?)"
+    );
 
-    mysqli_query($conn,$sql);
+    if (!$stmt) {
+        die("Doctor registration unavailable.");
+    }
 
-    echo "<script>
-            alert('Doctor Added Successfully!');
-            window.location='doctors.php';
-          </script>";
+    mysqli_stmt_bind_param(
+        $stmt,
+        "ssss",
+        $name,
+        $specialization,
+        $phone,
+        $email
+    );
+
+    if (mysqli_stmt_execute($stmt)) {
+        echo "<script>
+                alert('Doctor Added Successfully!');
+                window.location='doctors.php';
+              </script>";
+    } else {
+        echo "Error: Doctor could not be added.";
+    }
+
+    mysqli_stmt_close($stmt);
 }
 ?>
 

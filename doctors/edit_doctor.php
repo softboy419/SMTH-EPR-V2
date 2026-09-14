@@ -1,35 +1,86 @@
 <?php
+
 include("../config/database.php");
 
-$id = $_GET['id'];
+if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
+    die("Invalid doctor ID.");
+}
 
-$sql = "SELECT * FROM doctors WHERE id='$id'";
-$result = mysqli_query($conn,$sql);
+$id = (int) $_GET['id'];
+
+/* Get doctor information */
+$stmt = mysqli_prepare(
+    $conn,
+    "SELECT * FROM doctors WHERE id = ?"
+);
+
+if (!$stmt) {
+    die("Doctor information unavailable.");
+}
+
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
 $row = mysqli_fetch_assoc($result);
 
-if(isset($_POST['update'])){
+mysqli_stmt_close($stmt);
 
-    $name = $_POST['full_name'];
-    $specialization = $_POST['specialization'];
-    $phone = $_POST['phone'];
-    $email = $_POST['email'];
-
-    $update = "UPDATE doctors SET
-               full_name='$name',
-               specialization='$specialization',
-               phone='$phone',
-               email='$email'
-               WHERE id='$id'";
-
-    if(mysqli_query($conn,$update)){
-        echo "<script>
-        alert('Doctor Updated Successfully!');
-        window.location='doctors.php';
-        </script>";
-    }else{
-        echo mysqli_error($conn);
-    }
+if (!$row) {
+    die("Doctor not found.");
 }
+
+
+/* Update doctor */
+if (isset($_POST['update'])) {
+
+    $name = trim($_POST['full_name']);
+    $specialization = trim($_POST['specialization']);
+    $phone = trim($_POST['phone']);
+    $email = trim($_POST['email']);
+
+    $stmt = mysqli_prepare(
+        $conn,
+        "UPDATE doctors
+         SET full_name = ?,
+             specialization = ?,
+             phone = ?,
+             email = ?
+         WHERE id = ?"
+    );
+
+    if (!$stmt) {
+        die("Doctor update unavailable.");
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "ssssi",
+        $name,
+        $specialization,
+        $phone,
+        $email,
+        $id
+    );
+
+    if (mysqli_stmt_execute($stmt)) {
+
+        mysqli_stmt_close($stmt);
+
+        echo "<script>
+                alert('Doctor Updated Successfully!');
+                window.location='doctors.php';
+              </script>";
+
+        exit;
+
+    } else {
+        echo "Error: Doctor update failed.";
+    }
+
+    mysqli_stmt_close($stmt);
+}
+
 ?>
 
 <!DOCTYPE html>
