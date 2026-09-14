@@ -20,14 +20,19 @@ $doctor = null;
 
 if ($role === 'Doctor') {
 
-    $doctorQuery = mysqli_query(
-        $conn,
-        "SELECT * FROM doctors WHERE full_name = '$userFullName' LIMIT 1"
-    );
+    $stmt = mysqli_prepare(
+    $conn,
+    "SELECT * FROM doctors WHERE full_name = ? LIMIT 1"
+);
 
-    if ($doctorQuery && mysqli_num_rows($doctorQuery) === 1) {
+mysqli_stmt_bind_param($stmt, "s", $userFullName);
+mysqli_stmt_execute($stmt);
 
-        $doctor = mysqli_fetch_assoc($doctorQuery);
+$doctorQuery = mysqli_stmt_get_result($stmt);
+
+if ($doctorQuery && mysqli_num_rows($doctorQuery) === 1) {
+
+    $doctor = mysqli_fetch_assoc($doctorQuery);
 
     } else {
 
@@ -60,35 +65,63 @@ if (isset($_POST['save'])) {
     | Doctor automatically uses their own doctor ID.
     */
 
-    if ($role === 'Doctor') {
+   if ($role === 'Doctor') {
 
-        $doctorId = $doctor['id'];
+    $doctorId = $doctor['id'];
 
-    } else {
+} else {
 
-        $doctorId = $_POST['doctor_id'];
+    $doctorId = filter_input(INPUT_POST, 'doctor_id', FILTER_VALIDATE_INT);
 
-    }
+}
 
+$patient = filter_input(INPUT_POST, 'patient_id', FILTER_VALIDATE_INT);
+$date = $_POST['appointment_date'] ?? '';
+$time = $_POST['appointment_time'] ?? '';
 
-    $sql = "INSERT INTO appointments
-            (patient_id, doctor_id, appointment_date, appointment_time)
-            VALUES
-            ('$patient', '$doctorId', '$date', '$time')";
+/*
+ * Validate appointment data
+ */
+if (!$patient || !$doctorId || empty($date) || empty($time)) {
 
+    die("Invalid appointment information.");
 
-    if (mysqli_query($conn, $sql)) {
+}
 
-        echo "<script>
-            alert('Appointment Added Successfully!');
-            window.location='appointments.php';
-        </script>";
+/*
+ * Insert appointment using a prepared statement
+ */
+$stmt = mysqli_prepare(
+    $conn,
+    "INSERT INTO appointments
+    (patient_id, doctor_id, appointment_date, appointment_time)
+    VALUES (?, ?, ?, ?)"
+);
 
-    } else {
+mysqli_stmt_bind_param(
+    $stmt,
+    "iiss",
+    $patient,
+    $doctorId,
+    $date,
+    $time
+);
 
-        echo "Error: " . mysqli_error($conn);
+if (mysqli_stmt_execute($stmt)) {
 
-    }
+    echo "<script>
+        alert('Appointment Added Successfully!');
+        window.location='appointments.php';
+    </script>";
+
+} else {
+
+    echo "Error adding appointment.";
+
+}
+
+mysqli_stmt_close($stmt); 
+    
 }
 
 ?>
