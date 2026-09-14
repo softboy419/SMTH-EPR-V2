@@ -1,28 +1,71 @@
 <?php
 
 include("../config/database.php");
+include("../includes/auth.php");
 
-if(isset($_POST['update'])){
+if (isset($_POST['update'])) {
 
-    $id = $_POST['id'];
-    $medicine_name = $_POST['medicine_name'];
-    $category = $_POST['category'];
-    $quantity = $_POST['quantity'];
-    $unit_price = $_POST['unit_price'];
+    $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+    $medicine_name = trim($_POST['medicine_name']);
+    $category = trim($_POST['category']);
+    $quantity = filter_input(INPUT_POST, 'quantity', FILTER_VALIDATE_INT);
+    $unit_price = filter_input(INPUT_POST, 'unit_price', FILTER_VALIDATE_FLOAT);
     $expiry_date = $_POST['expiry_date'];
-    $supplier = $_POST['supplier'];
+    $supplier = trim($_POST['supplier']);
 
-    $sql = "UPDATE pharmacy SET
-        medicine_name='$medicine_name',
-        category='$category',
-        quantity='$quantity',
-        unit_price='$unit_price',
-        expiry_date='$expiry_date',
-        supplier='$supplier'
-        WHERE id='$id'";
+    if ($id === false || $id === null || $id <= 0) {
+        die("Invalid medicine ID.");
+    }
 
-    mysqli_query($conn, $sql);
+    if ($quantity === false || $quantity < 0) {
+        die("Invalid quantity.");
+    }
 
-    header("Location: pharmacy.php");
-    exit();
+    if ($unit_price === false || $unit_price < 0) {
+        die("Invalid unit price.");
+    }
+
+    $stmt = mysqli_prepare(
+        $conn,
+        "UPDATE pharmacy SET
+        medicine_name = ?,
+        category = ?,
+        quantity = ?,
+        unit_price = ?,
+        expiry_date = ?,
+        supplier = ?
+        WHERE id = ?"
+    );
+
+    if (!$stmt) {
+        die("Unable to process request.");
+    }
+
+    mysqli_stmt_bind_param(
+        $stmt,
+        "ssidssi",
+        $medicine_name,
+        $category,
+        $quantity,
+        $unit_price,
+        $expiry_date,
+        $supplier,
+        $id
+    );
+
+    if (mysqli_stmt_execute($stmt)) {
+
+        echo "<script>
+            alert('Medicine Updated Successfully!');
+            window.location='pharmacy.php';
+        </script>";
+
+    } else {
+
+        error_log("Medicine update failed: " . mysqli_stmt_error($stmt));
+        echo "Unable to update medicine.";
+    }
+
+    mysqli_stmt_close($stmt);
 }
+?>

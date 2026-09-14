@@ -5,11 +5,32 @@ include("../includes/header.php");
 include("../includes/sidebar.php");
 include("../includes/auth.php");
 
-$id = $_GET['id'];
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-$sql = "SELECT * FROM pharmacy WHERE id='$id'";
-$result = mysqli_query($conn, $sql);
+if ($id === false || $id === null || $id <= 0) {
+    die("Invalid medicine ID.");
+}
+
+$stmt = mysqli_prepare($conn, "SELECT * FROM pharmacy WHERE id = ?");
+
+if (!$stmt) {
+    die("Unable to process request.");
+}
+
+mysqli_stmt_bind_param($stmt, "i", $id);
+
+if (!mysqli_stmt_execute($stmt)) {
+    die("Unable to retrieve medicine.");
+}
+
+$result = mysqli_stmt_get_result($stmt);
 $row = mysqli_fetch_assoc($result);
+
+if (!$row) {
+    die("Medicine not found.");
+}
+
+mysqli_stmt_close($stmt);
 ?>
 
 <div class="main-content">
